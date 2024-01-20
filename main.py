@@ -6,6 +6,8 @@ from telebot import types
 import time
 from telebot.types import Message
 
+admin="RandomGor"
+
 # Function to load environment variables from .env file
 def load_env():
     with open('.env', 'r') as file:
@@ -217,6 +219,17 @@ def commit_to_database(message):
 @bot.message_handler(commands=['stophost'])
 def stop_hosting(message):
     try:
+        # Retrieve the Telegram username from the message
+        telegram_username = message.from_user.username
+
+        # Specify the allowed username(s) that can stop hosting
+        allowed_usernames = [telegram_username, admin]
+
+        # Check if the user has the permission to stop hosting
+        if telegram_username not in allowed_usernames:
+            bot.reply_to(message, "У вас нет прав на остановку хостинга.")
+            return
+
         # Retrieve the Telegram user ID
         user_id = message.chat.id
 
@@ -241,6 +254,7 @@ def stop_hosting(message):
 
     except Exception as e:
         bot.reply_to(message, f'Упс, что-то пошло не так: {e}.')
+
 
 
 @bot.message_handler(commands=['hosts'])
@@ -339,6 +353,14 @@ def delete_xbox_username(message):
         # Retrieve the Telegram username from the message
         telegram_username = message.from_user.username
 
+        # Specify the allowed username(s) that can delete from the database
+        allowed_usernames = [telegram_username,admin]
+
+        # Check if the user has the permission to delete Xbox usernames
+        if telegram_username not in allowed_usernames:
+            bot.reply_to(message, "У вас нет прав на удаление Xbox username.")
+            return
+
         # Check if the user has a registered Xbox username
         cursor = get_cursor()
         cursor.execute("SELECT xbox_username FROM xbox_usernames WHERE telegram_username = ?", (telegram_username,))
@@ -355,6 +377,7 @@ def delete_xbox_username(message):
 
     except Exception as e:
         bot.reply_to(message, f'Упс, что-то пошло не так: {e}.')
+
 
 # |=============================================================< SMART BOT >=============================================================|
 

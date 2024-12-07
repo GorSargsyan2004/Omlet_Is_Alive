@@ -60,7 +60,7 @@ class Scrapper:
                 file.write(url + '\n')
 
     def scrape_all_video_urls(self):
-        url = "https://pikabu.ru/tag/%D0%9A%D0%BE%D1%82,%D0%9C%D0%B5%D0%BC%D1%8B,%D0%A2%D1%80%D0%B5%D0%BD%D0%B4"  
+        url = "https://pikabu.ru/tag/%D0%9C%D0%B5%D0%BC%D1%8B"  
 
         response = requests.get(url)
 
@@ -90,7 +90,7 @@ class Scrapper:
             return []
 
     def scrape_all_image_urls(self):
-        url = "https://pikabu.ru/tag/%D0%9A%D0%BE%D1%82,%D0%9C%D0%B5%D0%BC%D1%8B,%D0%A2%D1%80%D0%B5%D0%BD%D0%B4"  
+        url = "https://pikabu.ru/tag/%D0%9C%D0%B5%D0%BC%D1%8B"  
         response = requests.get(url)
         if response.status_code == 200:
             soup = BeautifulSoup(response.text, 'html.parser')

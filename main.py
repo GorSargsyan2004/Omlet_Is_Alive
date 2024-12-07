@@ -24,21 +24,39 @@ bot = telebot.TeleBot(tg_token)
 from commands import register_commands
 register_commands(bot)
 
-# |========================================< SMART BOT >========================================|
-
-from smart_bot import making_bag_of_words_and_training
-making_bag_of_words_and_training(bot)
-
 # ------------------------------< MEME SCRAPING >---------------------------------
 
 from memes import register_memes
 register_memes(bot)
 
+# |========================================< SMART BOT >========================================|
+
+from smart_bot import making_bag_of_words_and_training
+making_bag_of_words_and_training(bot)
+
+
 
 def main():
     while True:
         try:
-            bot.infinity_polling(none_stop=True,timeout=60)
+            # Allow updates for all message types
+            bot.infinity_polling(
+                none_stop=True, 
+                timeout=60, 
+                allowed_updates=[
+                    "message",              # Regular messages
+                    "edited_message",       # Edited messages
+                    "channel_post",         # Posts in channels
+                    "edited_channel_post",  # Edited posts in channels
+                    "callback_query",       # Callback queries (e.g., inline buttons)
+                    "inline_query",         # Inline queries
+                    "chosen_inline_result", # Chosen inline query results
+                    "poll",                 # Poll updates
+                    "my_chat_member",       # Changes in chat membership for the bot
+                    "chat_member",          # Changes in chat membership
+                    "chat_join_request"     # Chat join requests
+                ]
+            )
             break
         except (ConnectionError, ReadTimeout) as e:
             print(f"Connection error: {e}")
@@ -47,6 +65,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
     
     
 

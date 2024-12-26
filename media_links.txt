@@ -1,8 +1,6 @@
 Video URLs:
-https://cs15.pikabu.ru/video/2024/12/06/1733464194218775628_49ea6666_640x360.mp4
 
 Image URLs:
-https://cs15.pikabu.ru/post_img/big/2024/12/06/5/1733466207126642070.jpg
-https://cs15.pikabu.ru/post_img/big/2024/11/30/5/1732950906110152071.jpg
-https://cs15.pikabu.ru/post_img/big/2024/12/06/3/1733456609146915983.jpg
-https://cs15.pikabu.ru/post_img/big/2024/12/06/4/1733464299171485476.png
+https://cs15.pikabu.ru/post_img/big/2025/01/23/5/1737614201182453750.png
+https://cs15.pikabu.ru/post_img/big/2025/01/23/5/173761424217308750.png
+https://cs15.pikabu.ru/post_img/big/2025/01/23/5/1737614311128882396.png

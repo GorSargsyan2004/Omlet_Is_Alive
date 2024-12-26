@@ -17,6 +17,8 @@ import pickle
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 from concurrent.futures import TimeoutError
 import json
+from datetime import timedelta
+
 
 
 server_ip = os.environ.get('MINECRAFT_SERVER_IP').strip("'")
@@ -35,6 +37,7 @@ tracking_joins_active = False
 tracking_joins_thread = None
 
 active_playtime = {}  # {player_name: active_time_in_seconds}
+lock = threading.Lock()
 
 
 authorized_usernames = ['RandomGor', 'ximozka_nnr']
@@ -82,11 +85,11 @@ def register_commands(bot):
                             )
         else:
             mc_command =    (
-                            f'tellraw @a '
-                            f'[{{"text":"[Телграм: ","color":"blue"}},'
-                            f'{{"text":"{sender_username}","color":"white"}},'
-                            f'{{"text":"] ","color":"blue"}},'
-                            f'{{"text":"{msg}","color":"blue"}}]'
+                                f'tellraw @a '
+                                f'[{{"text":"[Телграм: ","color":"blue"}},'
+                                f'{{"text":"{sender_username}","color":"white"}},'
+                                f'{{"text":"] ","color":"blue"}},'
+                                f'{{"text":"{msg}","color":"blue"}}]'
                             )
 
         # Submit the RCON command to be executed in a separate process
@@ -543,6 +546,8 @@ def register_commands(bot):
             bot.reply_to(message, "⚠️ Укажите название города, например: погода в Москва или /weather Москва")
             return
         location = command_parts[2]
+        if location[-1] == "е":
+            location = location[:-1]
         weather_info = get_weather(location)
         bot.reply_to(message, weather_info)
 
@@ -558,6 +563,7 @@ def register_commands(bot):
 ———————————————
 <b>ip</b> - guide-bone.gl.at.ply.gg
 <b>порт</b> - 3157
+
 <b>Java</b> (пк) v. 1.20.4
 ———————————————
 <b>ip</b> - b-griffin.gl.joinmc.link"""
@@ -801,12 +807,36 @@ def register_commands(bot):
     def write_timestamps(timestamps):
         write_dict_to_file(timestamps, TIMESTAMP_FILE, value_formatter=str)
 
-
     def generate_fortune():
         thresholds = [0.5, 1.5, 3.0, 4.0, 5.0]
         probabilities = [0.6, 0.25, 0.1, 0.04, 0.01]
         return round(random.choices(thresholds, probabilities)[0], 2)
 
+
+    LINKED_ACCOUNTS_PATH = "linked_accounts.json"
+
+    # Load linked accounts
+    def load_linked_accounts():
+        if not os.path.exists(LINKED_ACCOUNTS_PATH):
+            return {"groups": []}  # Initialize with an empty structure if file doesn't exist
+        try:
+            with open(LINKED_ACCOUNTS_PATH, "r") as f:
+                data = json.load(f)
+                # Ensure the structure is correct
+                if "groups" not in data or not isinstance(data["groups"], list):
+                    raise ValueError("Invalid JSON structure")
+                return data
+        except (json.JSONDecodeError, ValueError):
+            print("⚠️ Error: Could not decode JSON or invalid structure. Starting with an empty structure.")
+            return {"groups": []}
+
+    # Check if accounts are already linked
+    def are_accounts_linked(user_id_1, user_id_2):
+        data = load_linked_accounts()
+        for group in data["groups"]:
+            if user_id_1 in group and user_id_2 in group:
+                return True
+        return False
 
     @bot.message_handler(commands=['fortune'])
     def handle_fortune(message):
@@ -835,6 +865,19 @@ def register_commands(bot):
             )
             threading.Thread(target=delete_user_message).start()
             return
+
+        # Check if the user has opened the case from a linked account
+        for user_id_2 in timestamps.keys():
+            if are_accounts_linked(int(user_id), int(user_id_2)):
+                last_timestamp = timestamps.get(user_id_2, 0)
+                if current_time - last_timestamp < one_hour:
+                    time_left = round(one_hour - (current_time - last_timestamp), 2)
+                    bot.reply_to(
+                        message,
+                        f"⏳ {user_name}, подождите {time_left} секунд, вы уже использовали фортуну в другом аккаунте!"
+                    )
+                    threading.Thread(target=delete_user_message).start()
+                    return
 
         fortune_amount = generate_fortune()
         balances[user_id] = balances.get(user_id, 0) + fortune_amount
@@ -909,16 +952,16 @@ def register_commands(bot):
                 players = []
                 for line in player_lines:
                     is_afk = "[AFK]" in line
-                    nickname_cleaned = re.sub(r"^\[AFK\]|\b\w+:\s*|oo\[.*?\]oo|\s*♔", "", line).strip()
+
+                    nickname_cleaned = line.split(" ", maxsplit=3)[2]
+
                     players.append({"nickname": nickname_cleaned, "afk": is_afk})
                 return players
             else:
-                print(f"⚠️ Не удалось распознать формат ответа от сервера:\n {cleaned_response}")
                 return []
         except Exception as e:
             print(f"⚠️ Произошла ошибка: {str(e)}")
             return []
-
 
 
     #------------------------------------------
@@ -961,6 +1004,7 @@ def register_commands(bot):
                             f'{{"text":"+{earned_coins} 💰","color":"yellow"}}]'
                             )
                             
+                    
                     # Submit the RCON command to be executed in a separate process
                     future = executor.submit(send_rcon_command, mc_command)
                     
@@ -968,7 +1012,7 @@ def register_commands(bot):
                         response = f.result()  
                         if response == "":
                             for user_id, minecraft_nick in synchronized_users.items():
-                                if minecraft_nick == player:
+                                if minecraft_nick.lower() == player.lower():
                                     balances[user_id] = balances.get(user_id, 0) + earned_coins
                                     write_balances(balances)
                                     break
@@ -979,8 +1023,6 @@ def register_commands(bot):
                     
 
         threading.Thread(target=task).start()
-
-
 
     #------------------------------------------
     # 3. Periodic Task Scheduler
@@ -1020,18 +1062,32 @@ def register_commands(bot):
         daily_playtime = load_daily_playtime()
         current_time = time.time()
 
-        for player in players:
-            nickname = player["nickname"]
-            is_afk = player["afk"]
+        with lock:  # Ensure thread safety
+            for player in players:
+                nickname = player["nickname"]
+                is_afk = player["afk"]
 
-            if not is_afk:
-                if nickname not in active_playtime:
+                if not is_afk:
+                    # Initialize active playtime for the player if not already set
+                    if nickname not in active_playtime:
+                        active_playtime[nickname] = current_time
+
+                    # Calculate elapsed time
+                    elapsed_time = current_time - active_playtime[nickname]
+
+                    # Prevent unrealistic playtime increments
+                    if elapsed_time > 3600:  # If more than 1 hour, likely an error
+                        print(f"⚠️ Unrealistic playtime detected for {nickname}: {elapsed_time} seconds. Skipping.")
+                        elapsed_time = 0
+
+                    # Update daily playtime
+                    daily_playtime[nickname] = daily_playtime.get(nickname, 0) + elapsed_time
+
+                    # Update last active time
                     active_playtime[nickname] = current_time
-
-                elapsed_time = current_time - active_playtime[nickname]
-                daily_playtime[nickname] = daily_playtime.get(nickname, 0) + elapsed_time
-
-                active_playtime[nickname] = current_time
+                else:
+                    # Remove player from active playtime if they are AFK
+                    active_playtime.pop(nickname, None)
 
         save_daily_playtime(daily_playtime)
 
@@ -1055,8 +1111,41 @@ def register_commands(bot):
     threading.Thread(target=periodic_grant_rewards, daemon=True).start()
     periodic_update_playtime(interval=5, get_players_func=get_minecraft_players)
 
+    #------------------------------------------
+    # 3. Minecraft players activity function
+    #------------------------------------------
 
 
+    # Function to format playtime
+    def format_playtime_in_russian(seconds):
+        total_minutes = seconds // 60
+        hours = total_minutes // 60
+        minutes = total_minutes % 60
+
+        if hours > 0:
+            return f"{hours} час(ов) и {minutes} минут(ы)"
+        else:
+            return f"{minutes} минут(ы)"
+
+    # Function to calculate and display playtime
+    def display_daily_playtime():
+        daily_playtime = load_daily_playtime()
+
+        if not daily_playtime:
+            return "⛔️ В данный момент данных об активности в Сервере нет."
+
+        playtime_report = "<b>⏱ Активность игроков в Сервере:</b>\n"
+        for player, seconds in daily_playtime.items():
+            formatted_time = format_playtime_in_russian(seconds)
+            playtime_report += f"👤 <b>{player}</b>: {formatted_time}\n"
+
+        return playtime_report
+
+    # Telegram bot command for майн актив
+    @bot.message_handler(func=lambda message: "майн актив" in message.text.lower() )
+    def handle_mine_activity_command(message):
+        response = display_daily_playtime()
+        bot.send_message(chat_id=message.chat.id, text=response, parse_mode="HTML")
 
     #=============================< AMLET MEME CREATION PART >=============================
 
@@ -1191,6 +1280,8 @@ def register_commands(bot):
             # Reset the user's request state
             del user_requests[user_id]
 
+    #=============================< AMLET MINECRAFT PLAYER SYNC PART >=============================
+
     # File to store the user synchronization data
     SYNC_FILE = "synchronize.pickle"
 
@@ -1251,14 +1342,16 @@ def register_commands(bot):
         else:
             bot.reply_to(message, "❌ <b>Нет синхронизированных пользователей.</b>",parse_mode="HTML")
 
+    #=============================< AMLET PRIVELLAGES PART >=============================
+
     # Privileges configuration
     PRIVILEGES = {
-        "ВИП ♠": {"group": "vip", "cost": 100},
-        "СТРОИТЕЛЬ ⚒": {"group": "builder", "cost": 300},
-        "ЭЛИТА 💎": {"group": "elite", "cost": 600},
-        "АРХИТЕКТОР 💡": {"group": "architect", "cost": 1200},
-        "АДМИН ★": {"group": "admin", "cost": 2000},
-        "СУПЕРВАЙЗЕР ✦": {"group": "supervisor", "cost": 4000},
+        "ВИП ♠": {"group": "vip", "cost": 400},
+        "СТРОИТЕЛЬ ⚒": {"group": "builder", "cost": 1200},
+        "ЭЛИТА 💎": {"group": "elite", "cost": 2400},
+        "АРХИТЕКТОР 💡": {"group": "architect", "cost": 4800},
+        "АДМИН ★": {"group": "admin", "cost": 8000},
+        "СУПЕРВАЙЗЕР ✦": {"group": "supervisor", "cost": 16000},
     }
 
     # Command to display privileges with buttons
@@ -1289,22 +1382,21 @@ def register_commands(bot):
         privilege_cost = int(data[2])
 
         # Read current balances
-        fortunes = read_fortunes()
+        fortunes = read_balances()
         user_coins = fortunes.get(user_id, 0.0)
 
         if user_coins >= privilege_cost:
-            # Deduct coins
-            fortunes[user_id] = user_coins - privilege_cost
-            write_fortunes(fortunes)
 
             # Get the user's Minecraft nickname
             minecraft_nick = get_nickname(user_id)
+            print(minecraft_nick)
             if not minecraft_nick:
                 bot.answer_callback_query(call.id, "❌ Вы не синхронизировали свой Minecraft ник. Используйте /sync ваш никнейм.")
                 return
 
             # Execute RCON command to set privilege
             rcon_command = f"/lp user {minecraft_nick} group set {privilege_group}"
+            print(rcon_command)
 
             # Submit the RCON command to the executor
             future = executor.submit(send_rcon_command, rcon_command)
@@ -1312,8 +1404,12 @@ def register_commands(bot):
             def send_response(f):
                 try:
                     success = f.result()
+                    print(success)
                     if success:  # Assuming send_rcon_command returns True/False
                         bot.answer_callback_query(call.id, f"✅ Привелегия '{privilege_group}' успешно выдана!")
+                        # Deduct coins
+                        fortunes[user_id] = user_coins - privilege_cost
+                        write_balances(fortunes)
                     else:
                         bot.answer_callback_query(call.id, "❌ Ошибка при выполнении команды RCON.")
                 except Exception as e:

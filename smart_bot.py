@@ -27,6 +27,7 @@ import time
 from datetime import datetime
 import threading
 import schedule
+from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 # Download NLTK resources for tokenization
 nltk.download('punkt')
@@ -41,6 +42,9 @@ with open('intents.json', encoding='utf-8') as file:
     data = json.load(file)
 
 authorized_usernames = ['RandomGor', 'ximozka_nnr']
+
+# Temporary storage for user IDs
+pending_accounts = {}
 
 def translate(text):
         if not text:
@@ -252,12 +256,12 @@ def making_bag_of_words_and_training(bot):
             # Append the new user message to the history
             full_context = chat_messages 
 
-            sys_prmpt =  '''Пожалуйста, давайте немного краткие ответы чтобы они поместились в сообщение для телеграм. И на русском. 
+            sys_prmpt =  '''Пожалуйста, давайте немного краткие ответы чтобы они поместились в сообщение для телеграмма. И на русском. 
                         Помни твое имя Амлет и ты находишся в телеграм группе игроков майнкрафт, кросплатформленный сервер.
                         У нас есть личный сервер Amlet_House (это и имя нашей группы телеграм). Админ Группы
                         Гор, и создатель телеграм бота на котором ты работаешь сейчас, твой код написан Гором, его
                         юзернейм в телеграм @RandomGor. И еще помни что Гор любит девушку Вику, вот ее юзернейм @ximozka_nnr.
-                        И всегда пиши красиво используй емодзи, используй '\n', тоесть новые строки для красивого ответа, ну и если хочешь текст какой то сделать широким
+                        И всегда пиши КРАСИВО используй емодзи, используй '\n', тоесть новые строки для красивого ответа, ну и если хочешь текст какой то сделать широким
                         (bold) используй **жирный текст** такой способ чтобы сделать текст bold. И еще если кому то конкретно надо ответить или ему/ей что то сказать
                         НЕ ЗАБУДЬ УПОМЯНУТЬ юзернейм пользователя, например @ximozka_nnr чтобы они увидели что ты написал когда упоменал их.
                         
@@ -266,9 +270,12 @@ def making_bag_of_words_and_training(bot):
                         И если в сообщениях юзеров есть слово 'Амлет' это значит звали тебя чтобы ответить, ПОСЛЕДНЕЕ сообщение где будет присуствовать 'Амлет'
                         это значит что ты ДОЛЖЕН БУДЕШЬ ОТВЕТИЬ НА ЭТО ПОСЛЕДНЕЕ СООБЩЕНИЕ, учитывая весь контекст переписки чата ЕСЛИ НУЖНО. У тебя есть их 
                         юзернеймы, можешь ВОСПОЛЬЗОВАТСЯ ими чтобы кого то что то сказать или передать. Тебя могут спрашивать вопросы что зависимо от контекста
-                        будь внимателен над такими вопросами и отвечай на них всегда ИРОНИЧНО, с юмором когда надо и серезно когда надобно :)
+                        будь внимателен над такими вопросами и отвечай на них всегда ИРОНИЧНО, с юмором когда надо и СЕРЕЗНО КОГДА НАДОБНО :)
 
-                        И не используй форму ответа типо - "Ответ Амлет: <твой ответ>", просто пиши твой ответ без "Ответ Амлет", окей?
+                        И НЕ используй форму ответа типо - "Ответ Амлет: <твой ответ>", просто пиши твой ответ без "Ответ Амлет", окей?
+
+                        И когда спрашивают вопросы не о контексте чата а просто познавательный вопрос, хотят чтобы ты давал им информацию, то не используй юмор,
+                        тут уже отвечай СЕРЕЗНО.
 
                         Все, желаю тебе удачи, ты наш асистент в группе Amlet_House отвечай на любые вопросы.
                         '''
@@ -290,7 +297,7 @@ def making_bag_of_words_and_training(bot):
             return "Ошибка какая то, взгляни в логи @RandomGor але."
 
 
-    @bot.message_handler(func=lambda message: "гбт" in message.text.lower())
+    @bot.message_handler(func=lambda message: "гбт" in message.text.lower().split(maxsplit=2)[0])
     def handle_gpt(message):
         chat_id = message.chat.id
 
@@ -345,7 +352,7 @@ def making_bag_of_words_and_training(bot):
     bot_username = "амлет"
 
     # Define a new function to handle messages mentioning the bot
-    @bot.message_handler(func=lambda message: bot_username.lower() in message.text.lower())
+    @bot.message_handler(func=lambda message: bot_username.lower() in message.text.lower().split(maxsplit=2)[0])
     def handle_mention(message):
         # Get the text message from the user
         user_message = remove_bot_mention(message.text,bot_username)
@@ -520,7 +527,7 @@ def making_bag_of_words_and_training(bot):
 
     user_clothing = defaultdict(lambda: CLOTHES_SEQUENCE.copy())
 
-    @bot.message_handler(func=lambda message: "сними" in message.text.lower())
+    @bot.message_handler(func=lambda message: "сними" in message.text.lower().split(maxsplit=2)[0])
     def handle_snyat(message):
         if not message.reply_to_message:
             bot.reply_to(message, "⚠️ Команду нужно использовать в ответ на сообщение пользователя.")
@@ -712,9 +719,14 @@ def making_bag_of_words_and_training(bot):
         write_dict_to_file({}, MESSAGE_COUNT_FILE)
         print("📅 Статистика за день была сброшена!")
 
+    # Reset the daily case file
+    def reset_daily_case():
+        write_dict_to_file({}, DAILY_CASE_FILE)
+
     # Scheduler to reset the daily stats at midnight
     def schedule_daily_reset():
         schedule.every().day.at("00:00").do(reset_daily_activity)
+        schedule.every().day.at("00:00").do(reset_daily_case)
         while True:
             schedule.run_pending()
             time.sleep(60)
@@ -787,7 +799,7 @@ def making_bag_of_words_and_training(bot):
 
         bot.reply_to(message, stats_summary, parse_mode="HTML")
 
-    @bot.message_handler(func=lambda message: "дарить" in message.text.lower())
+    @bot.message_handler(func=lambda message: "дарить" in message.text.lower().split(maxsplit=2)[0])
     def grant_amlet_coins(message):
         # Check if the message is a reply to another user
         if not message.reply_to_message:
@@ -813,6 +825,7 @@ def making_bag_of_words_and_training(bot):
         # Get the user ID of the replied-to user
         replied_user_id = f"{message.reply_to_message.from_user.id}"
         replied_user_name = message.reply_to_message.from_user.first_name or "Юзер"
+        user_name = message.from_user.first_name
         
         # Read the balances from the file
         balances = read_balances()
@@ -822,6 +835,7 @@ def making_bag_of_words_and_training(bot):
         
         # Save the updated balances
         write_balances(balances)
+
         
         # Notify both the issuer and the recipient
         bot.reply_to(
@@ -838,7 +852,7 @@ def making_bag_of_words_and_training(bot):
                 print(f"Bot cannot message user {replied_user_id}. They need to start a chat first.")
 
 
-    @bot.message_handler(func=lambda message: "отобрать" in message.text.lower())
+    @bot.message_handler(func=lambda message: "отобрать" in message.text.lower().split(maxsplit=2)[0])
     def grant_amlet_coins(message):
         # Check if the message is a reply to another user
         if not message.reply_to_message:
@@ -864,6 +878,7 @@ def making_bag_of_words_and_training(bot):
         # Get the user ID of the replied-to user
         replied_user_id = f"{message.reply_to_message.from_user.id}"
         replied_user_name = message.reply_to_message.from_user.first_name or "Юзер"
+        user_name = message.from_user.first_name
         
         # Read the balances from the file
         balances = read_balances()
@@ -888,7 +903,7 @@ def making_bag_of_words_and_training(bot):
                 print(f"Bot cannot message user {replied_user_id}. They need to start a chat first.")
 
 
-    @bot.message_handler(func=lambda message: "дать" in message.text.lower())
+    @bot.message_handler(func=lambda message: "дать" in message.text.lower().split(maxsplit=2)[0])
     def grant_amlet_coins(message):
         # Check if the message is a reply to another user
         if not message.reply_to_message:
@@ -939,7 +954,7 @@ def making_bag_of_words_and_training(bot):
             if "bot can't initiate conversation" in str(e):
                 print(f"Bot cannot message user {replied_user_id}. They need to start a chat first.")
 
-    @bot.message_handler(func=lambda message: "топ5" in message.text.lower())
+    @bot.message_handler(func=lambda message: "топ5" in message.text.lower().split(maxsplit=2)[0])
     def haldle_top5(message):
         balances = read_balances()
 
@@ -957,7 +972,7 @@ def making_bag_of_words_and_training(bot):
         bot.reply_to(message, result_message,parse_mode="HTML")
 
 
-    @bot.message_handler(func=lambda message: "топ10" in message.text.lower())
+    @bot.message_handler(func=lambda message: "топ10" in message.text.lower().split(maxsplit=2)[0])
     def handle_top10(message):
         balances = read_balances()
 
@@ -978,9 +993,246 @@ def making_bag_of_words_and_training(bot):
 
 
 
+    # ========================< AMLET CASES >========================
+
+    DAILY_CASE_FILE = "daily_case.json"
+    COIN_FILE = "amlet_coins.txt"
+
+    # Load or initialize the daily case file
+    def load_daily_case():
+        return read_file_as_dict(DAILY_CASE_FILE, key_type=str, value_type=dict)
+
+    def save_daily_case(case_data):
+        write_dict_to_file(case_data, DAILY_CASE_FILE)
+
+    # Reward probabilities (adjust to your needs)
+    REWARDS = {
+        10: 0.4,   # 40% chance to win 10 coins
+        15: 0.25,  # 25% chance to win 15 coins
+        20: 0.15,  # 15% chance to win 20 coins
+        30: 0.1,   # 10% chance to win 30 coins
+        40: 0.05,  # 5% chance to win 40 coins
+        60: 0.03,  # 3% chance to win 60 coins
+        80: 0.015, # 1.5% chance to win 80 coins
+        100: 0.005 # 0.5% chance to win 100 coins
+    }
+
+    PAID_CASE_REWARDS = [30, 40, 50, 60, 70]  # Rewards with equal probability
+
+    # Choose reward based on probabilities
+    def choose_reward():
+        rewards, probabilities = zip(*REWARDS.items())
+        return random.choices(rewards, probabilities)[0]
+
+    def open_daily_case(user_id):
+        daily_case = load_daily_case()
+        balances = read_balances()
+
+        # Check if the user has already opened the case today
+        today_date = time.strftime("%Y-%m-%d")  # Current date in YYYY-MM-DD
+        if str(user_id) in daily_case and daily_case[str(user_id)] == today_date:
+            return "<b>Вы уже открыли свой ежедневный кейс сегодня! Возвращайтесь завтра.</b>"
+
+        # Check if the user has opened the case from a linked account
+        for user_id_2 in daily_case.keys():
+            if are_accounts_linked(int(user_id), int(user_id_2)):
+                if daily_case[str(user_id_2)] == today_date:
+                    return "<b>Вы уже открыли свой кейс с другого аккаунта!</b>"
+
+        # Generate a reward
+        reward = choose_reward()
+        balances[str(user_id)] = balances.get(str(user_id), 0) + reward
+
+        # Save updated balance
+        write_balances(balances)
+
+        # Update daily case
+        daily_case[str(user_id)] = today_date
+        save_daily_case(daily_case)
+
+        return f"<b>Поздравляем!</b> Вы получили <b>{reward} Амлет Коинов</b>. Ваш новый баланс: <b>{balances[str(user_id)]:.2f}</b> Амлет Коинов."
 
 
+    # Open the paid case
+    def open_paid_case(user_id):
+        balances = read_balances()
 
+        # Check if the user has enough coins
+        current_balance = balances.get(str(user_id), 0)
+        if current_balance < 50:
+            return ""
+
+        # Deduct 50 coins
+        balances[str(user_id)] -= 50
+
+        # Generate a reward (equal probability for all options)
+        reward = random.choice(PAID_CASE_REWARDS)
+        balances[str(user_id)] += reward
+
+        # Save updated balance
+        write_balances(balances)
+
+        username = bot.get_chat(user_id).username
+
+        if reward >= 50:
+            return (
+                f"<b>Поздравляем! @{username}</b> Вы получили <b>{reward}</b> Амлет Коинов. "
+                f"Ваш новый баланс: {balances[str(user_id)]:.2f} <b>+{reward-50}</b> Амлет Коинов."
+            )
+        else:
+            return (
+                f"<b>Повезет в другой раз @{username}</b> Вы получили <b>{reward}</b> Амлет Коинов. "
+                f"Ваш новый баланс: {balances[str(user_id)]:.2f} <b>-{50-reward}</b> Амлет Коинов."
+            )
+
+    # Telegram bot command for /case
+    @bot.message_handler(commands=["case"])
+    def handle_case_command(message):
+        user_id = message.from_user.id
+
+        # Create an inline keyboard with buttons for daily and paid cases
+        markup = InlineKeyboardMarkup()
+        daily_button = InlineKeyboardButton("🎁 Ежедневный кейс (дает 10-100)", callback_data="daily_case")
+        paid_button = InlineKeyboardButton("💰 Платный кейс стоит 50 (дает 30-70)", callback_data="paid_case")
+        
+        # Add buttons in separate rows
+        markup.add(daily_button)
+        markup.add(paid_button)
+
+        bot.send_message(
+            chat_id=message.chat.id,
+            text="<b>Выберите кейс для открытия:</b>",
+            reply_markup=markup,
+            parse_mode="HTML"
+        )
+
+    # Telegram bot callback for case buttons
+    @bot.callback_query_handler(func=lambda call: call.data in ["daily_case", "paid_case"])
+    def handle_case_callback(call):
+        user_id = call.from_user.id
+
+        if call.data == "daily_case":
+            response = open_daily_case(user_id)
+            if response == "":
+                bot.answer_callback_query(call.id, "❌ Вы уже открыли ваш ежедневный кейс сегодня! Возвращайтесь завтра.")
+                return
+
+        elif call.data == "paid_case":
+            response = open_paid_case(user_id)
+            if response == "":
+                bot.answer_callback_query(call.id, "❌ У вас недостаточно Амлет Коинов для открытия этого кейса! Нужно 50 коинов.")
+                return
+
+        bot.answer_callback_query(call.id)  # Acknowledge the callback
+        sent_message = bot.send_message(chat_id=call.message.chat.id, text=response, parse_mode="HTML")
+
+        def delete_bot_message():
+            time.sleep(5)  # Wait before deletion
+            try:
+                bot.delete_message(chat_id=sent_message.chat.id, message_id=sent_message.message_id)
+            except Exception as e:
+                print(f"Error deleting bot's message: {e}")
+
+        # Start deletion in another thread
+        threading.Thread(target=delete_bot_message).start()
+
+
+    # -------------< Linking accounts >----------
+
+    LINKED_ACCOUNTS_PATH = "linked_accounts.json"
+
+    # Load linked accounts
+    def load_linked_accounts():
+        if not os.path.exists(LINKED_ACCOUNTS_PATH):
+            return {"groups": []}  # Initialize with an empty structure if file doesn't exist
+        try:
+            with open(LINKED_ACCOUNTS_PATH, "r") as f:
+                data = json.load(f)
+                # Ensure the structure is correct
+                if "groups" not in data or not isinstance(data["groups"], list):
+                    raise ValueError("Invalid JSON structure")
+                return data
+        except (json.JSONDecodeError, ValueError):
+            print("⚠️ Error: Could not decode JSON or invalid structure. Starting with an empty structure.")
+            return {"groups": []}
+
+    # Save linked accounts
+    def save_linked_accounts(data):
+        with open(LINKED_ACCOUNTS_PATH, "w") as f:
+            json.dump(data, f, indent=4, ensure_ascii=False)
+
+    # Add accounts to a group
+    def add_accounts_to_group(user_id_1, user_id_2):
+        data = load_linked_accounts()
+        groups = data["groups"]
+
+        # Find all groups containing user_id_1 or user_id_2
+        groups_to_merge = []
+        for group in groups:
+            if user_id_1 in group or user_id_2 in group:
+                groups_to_merge.append(group)
+
+        if groups_to_merge:
+            # Merge all relevant groups into one and add the new IDs
+            merged_group = set()
+            for group in groups_to_merge:
+                merged_group.update(group)
+                groups.remove(group)  # Remove old groups
+
+            # Add the new IDs
+            merged_group.update([user_id_1, user_id_2])
+            groups.append(list(merged_group))  # Add the merged group back
+        else:
+            # Create a new group with the two IDs
+            groups.append([user_id_1, user_id_2])
+
+        save_linked_accounts(data)
+
+    # Check if accounts are already linked
+    def are_accounts_linked(user_id_1, user_id_2):
+        data = load_linked_accounts()
+        for group in data["groups"]:
+            if user_id_1 in group and user_id_2 in group:
+                return True
+        return False
+
+    # Telegram bot handler for /same_acc
+    @bot.message_handler(commands=["same_acc"])
+    def handle_same_acc_command(message):
+        authorized_usernames = ['RandomGor']  # Replace with the usernames of admins
+        if message.from_user.username not in authorized_usernames:
+            bot.reply_to(message, "⚠️ У вас нет разрешения на выполнение этой команды.")
+            return
+
+        global pending_accounts
+        user_id = message.from_user.id
+
+
+        # Check if the user is replying to someone
+        if not message.reply_to_message:
+            bot.reply_to(message, "⚠️ Пожалуйста, используйте эту команду, отвечая на сообщение пользователя, которого хотите связать.")
+            return
+
+        # Get the ID of the replied user
+        replied_user_id = message.reply_to_message.from_user.id
+
+        if user_id in pending_accounts:
+            # Second step: Link the accounts
+            first_user_id = pending_accounts[user_id]
+            second_user_id = replied_user_id
+
+            if are_accounts_linked(first_user_id, second_user_id):
+                bot.reply_to(message, "⚠️ Эти аккаунты уже связаны.")
+            else:
+                add_accounts_to_group(first_user_id, second_user_id)
+                bot.reply_to(message, f"✅ Аккаунты успешно связаны: {first_user_id} и {second_user_id}")
+
+            # Clear the pending state
+            del pending_accounts[user_id]
+        else:
+            # First step: Save the first user ID
+            pending_accounts[user_id] = replied_user_id
+            bot.reply_to(message, "✅ Теперь укажите другой аккаунт, с которым хотите связать этот.")
 
 
     # ========================< CHAT MANAGEMENT >========================

@@ -260,7 +260,7 @@ def making_bag_of_words_and_training(bot):
                         Помни твое имя Амлет и ты находишся в телеграм группе игроков майнкрафт, кросплатформленный сервер.
                         У нас есть личный сервер Amlet_House (это и имя нашей группы телеграм). Админ Группы
                         Гор, и создатель телеграм бота на котором ты работаешь сейчас, твой код написан Гором, его
-                        юзернейм в телеграм @RandomGor. И еще помни что Гор любит девушку Вику, вот ее юзернейм @ximozka_nnr.
+                        юзернейм в телеграм @RandomGor. И еще помни что Гор не любит никакую девушку и врядли.
                         И всегда пиши КРАСИВО используй емодзи, используй '\n', тоесть новые строки для красивого ответа, ну и если хочешь текст какой то сделать широким
                         (bold) используй **жирный текст** такой способ чтобы сделать текст bold. И еще если кому то конкретно надо ответить или ему/ей что то сказать
                         НЕ ЗАБУДЬ УПОМЯНУТЬ юзернейм пользователя, например @ximozka_nnr чтобы они увидели что ты написал когда упоменал их.
@@ -309,6 +309,8 @@ def making_bag_of_words_and_training(bot):
             prompt = message.text.replace("гбт", "Амлет").strip()
             prompt = message.text.replace("Гбт", "Амлет").strip()
             prompt = message.text.replace("ГБТ", "Амлет").strip()
+
+            print(f"{message.from_user.username} sended {prompt} to GBT")
 
             response = get_response_gpt_with_history(message, prompt, chat_id)
 
@@ -444,22 +446,29 @@ def making_bag_of_words_and_training(bot):
                             else:
                                 bot.reply_to(message.reply_to_message, "😘")
                             response = [f"<b>{message.from_user.first_name}</b> целует @{replied_user.username}! 💋"]
+                            print(f"<b>{message.from_user.first_name}</b> целует @{replied_user.username}! 💋")
                         else:
                             response = [f"<b>{message.from_user.first_name}</b> целует {replied_user.first_name}! 💋"]
+                            print(f"<b>{message.from_user.first_name}</b> целует {replied_user.first_name}! 💋")
 
                     if tag == 'kick':
                         if replied_user.username:
                             bot.reply_to(message.reply_to_message, "👊")
                             response = [f"<b>{message.from_user.first_name}</b> ударяет @{replied_user.username}! 🥊"]
+                            print(f"<b>{message.from_user.first_name}</b> ударяет @{replied_user.username}! 🥊")
                         else:
                             response = [f"<b>{message.from_user.first_name}</b> ударяет {replied_user.first_name}! 🥊"]
+                            print(f"<b>{message.from_user.first_name}</b> ударяет {replied_user.first_name}! 🥊")
 
                     if tag == 'kickToBalls':
                         if replied_user.username:
                             bot.reply_to(message.reply_to_message, "🍳")
                             response = [f"<b>{message.from_user.first_name}</b> ударяет по яйцам @{replied_user.username}! 🍒🥊"]
+                            print(f"<b>{message.from_user.first_name}</b> ударяет по яйцам @{replied_user.username}! 🍒🥊")
                         else:
                             response = [f"<b>{message.from_user.first_name}</b> ударяет по яйцам{replied_user.first_name}! 🍒🥊"]
+                            print(f"<b>{message.from_user.first_name}</b> ударяет по яйцам{replied_user.first_name}! 🍒🥊")
+                            
 
                     if tag == 'chapalax':
                         if replied_user.username:
@@ -479,8 +488,10 @@ def making_bag_of_words_and_training(bot):
                             chat_id = message.chat.id
                             bot.send_sticker(chat_id, sticker_id)
                             response = [f"<b>{message.from_user.first_name}</b> смачно отсасывает у @{replied_user.username}! 👄"]
+                            print(f"<b>{message.from_user.first_name}</b> смачно отсасывает у @{replied_user.username}! 👄")
                         else:
                             response = [f"<b>{message.from_user.first_name}</b> смачно отсасывает у {replied_user.first_name}! 👄"]
+                            print(f"<b>{message.from_user.first_name}</b> смачно отсасывает у {replied_user.first_name}! 👄")
 
                     if tag == 'DoFuck':
                         if replied_user.username:
@@ -494,15 +505,19 @@ def making_bag_of_words_and_training(bot):
                             chat_id = message.chat.id
                             bot.send_sticker(chat_id, sticker_id)
                             response = [f"<b>{message.from_user.first_name}</b> жоска трахает @{replied_user.username}! 👌🏻👈"]
+                            print(f"<b>{message.from_user.first_name}</b> жоска трахает @{replied_user.username}! 👌🏻👈")
                         else:
                             response = [f"<b>{message.from_user.first_name}</b> жоска трахает {replied_user.first_name}! 👌🏻👈"]
+                            print(f"<b>{message.from_user.first_name}</b> жоска трахает {replied_user.first_name}! 👌🏻👈")
 
                     if tag == 'DoKuni':
                         if replied_user.username:
                             bot.reply_to(message.reply_to_message, "👅")
                             response = [f"<b>{message.from_user.first_name}</b> вкусно делает куни @{replied_user.username}! ✌️👅"]
+                            print(f"<b>{message.from_user.first_name}</b> вкусно делает куни @{replied_user.username}! ✌️👅")
                         else:
                             response = [f"<b>{message.from_user.first_name}</b> вкусно делает куни {replied_user.first_name}! ✌️👅"]
+                            print(f"<b>{message.from_user.first_name}</b> вкусно делает куни {replied_user.first_name}! ✌️👅")
 
                     if tag == 'Hugging':
                         if replied_user.username:
@@ -514,8 +529,10 @@ def making_bag_of_words_and_training(bot):
                             chat_id = message.chat.id
                             bot.send_sticker(chat_id, sticker_id)
                             response = [f"<b>{message.from_user.first_name}</b> крепко обнимает @{replied_user.username}! 🤗"]
+                            print(f"<b>{message.from_user.first_name}</b> крепко обнимает @{replied_user.username}! 🤗")
                         else:
                             response = [f"<b>{message.from_user.first_name}</b> крепко обнимает {replied_user.first_name}! 🤗"]
+                            print(f"<b>{message.from_user.first_name}</b> крепко обнимает {replied_user.first_name}! 🤗")
                 
 
 
@@ -991,6 +1008,25 @@ def making_bag_of_words_and_training(bot):
 
         bot.reply_to(message, result_message, parse_mode="HTML")
 
+    @bot.message_handler(func=lambda message: "топвсе" in message.text.lower().split(maxsplit=2)[0])
+    def handle_top10(message):
+        balances = read_balances()
+
+        # Sort and limit to top 10
+        top_10_balances = sorted(balances.items(), key=lambda x: x[1], reverse=True)[:100]
+
+        result_message = "🏆 <b>Топ 10</b> пользователей по балансу:\n"
+        for i, (user_id, balance) in enumerate(top_10_balances, start=1):
+            try:
+                chat = bot.get_chat(user_id)
+                username = chat.username or chat.first_name or "Неопознанный"
+            except Exception as e:
+                username = "Неопознанный"
+            
+            result_message += f"{i}. <b>{username}</b>: {balance:.2f} AmletCoins 💰\n"
+
+        bot.reply_to(message, result_message, parse_mode="HTML")
+
 
 
     # ========================< AMLET CASES >========================
@@ -1275,6 +1311,9 @@ def making_bag_of_words_and_training(bot):
         user_id = message.from_user.id
         current_time = time.time()
         chat_id = message.chat.id
+
+        if user_id == 7846213864:
+            print(f"Тема: {message.text}")
 
         # Track the time of the message for rate-limiting
         if user_id not in user_message_timestamps:

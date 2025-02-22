@@ -553,25 +553,31 @@ def register_commands(bot):
 
     @bot.message_handler(commands=['serverStatus'])
     def handle_server_status(message):
-        status = server.status()
         try:
+            status = server.status()  # Attempt to get the server status
+
             response = (
                 f"✅ <b>Сервер статус:</b> Онлайн\n"
                 f"🎮 <b>Версия:</b> {status.version.name}\n"
                 f"👥 <b>Игроки Онлайн:</b> {status.players.online}/{status.players.max}\n"
                 """\n<b>Bedrock</b> (Телефонный) v. 1.20.81+
-———————————————
-<b>ip</b> - guide-bone.gl.at.ply.gg
-<b>порт</b> - 3157
+    ———————————————
+    <b>ip</b> - guide-bone.gl.at.ply.gg
+    <b>порт</b> - 3157
 
-<b>Java</b> (пк) v. 1.20.4
-———————————————
-<b>ip</b> - b-griffin.gl.joinmc.link"""
+    <b>Java</b> (пк) v. 1.20.4
+    ———————————————
+    <b>ip</b> - b-griffin.gl.joinmc.link"""
             )
-        except Exception as e:
-            response = f"❌ <b>Сервер статус:</b> Оффлайн\n⚠️ <b>Ошибка:</b> {str(e)}"
         
+        except Exception as e:
+            response = (
+                "❌ <b>Сервер статус:</b> Оффлайн\n"
+                "⚠️ <b>Ошибка:</b> Сервер не отвечает. Попробуйте позже."
+            )
+
         bot.reply_to(message, response, parse_mode="HTML")
+
 
     @bot.message_handler(commands=['privileges'])
     def handle_privileges(message):
@@ -656,8 +662,8 @@ def register_commands(bot):
 
     @bot.message_handler(commands=['online'])
     def handle_online(message):
-        status = server.status()
         try:
+            status = server.status()
             response = (
                 f"👥 **Игроки Онлайн:** {status.players.online}/{status.players.max}\n"
             )

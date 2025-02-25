@@ -11,7 +11,7 @@ def register_memes(bot):
     # Function to scrape and store meme links
     @bot.message_handler(commands=['scrape'])
     def scrape_memes(message):
-        authorized_usernames = ['RandomGor', 'ximozka_nnr']
+        authorized_usernames = ['RandomGor']
 
         if message.from_user.username in authorized_usernames:
             scrape_and_store()  

@@ -41,7 +41,7 @@ API_KEY_GPT =  os.environ.get('API_KEY_GPT').strip("'")
 with open('intents.json', encoding='utf-8') as file:
     data = json.load(file)
 
-authorized_usernames = ['RandomGor', 'ximozka_nnr']
+authorized_usernames = ['RandomGor']
 
 # Temporary storage for user IDs
 pending_accounts = {}
@@ -296,6 +296,39 @@ def making_bag_of_words_and_training(bot):
             print(f"Error preparing GPT request: {str(e)}")
             return "Ошибка какая то, взгляни в логи @RandomGor але."
 
+    def get_response_gpt2(user_prompt):
+        try:
+            sys_prmpt =  '''Ты создан армянином под именем Гор чтобы помочь его друзей.
+                            Ты создан для того чтобы отвечать на вопросы людей, в основном 
+                            вопросы будут школьные, иногда просто для регулярных вопросов,
+                            отвечай всегда в очень простом виде, с простыми словами. Тобой в 
+                            основном будут пользоватся подростки с 13 до 16 лет. Отвечай не очень
+                            обшырно но и не очень кратко, веди себя как дружелюбный бот желающий
+                            помочь в уроках и в тестах. Если дадут задачи калькуляции делай расчеты
+                            точно и в простом виде.
+
+                            И если надо будет сделать какой то текст, заголовки или что то еще жирным фонтом
+                            то пользуйся *таким* или **таким** форматом окей?
+
+                            Удачи тебе в твоей работе :) вот и тебе заданный вопрос:
+
+                         '''
+
+            openai.api_key = API_KEY_GPT
+
+            response = openai.ChatCompletion.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {'role': 'system', 'content': sys_prmpt + user_prompt}
+                ]
+            )
+            gpt_response = response['choices'][0]['message']['content']
+
+            return gpt_response
+
+        except Exception as e:
+            print(f"Error preparing GPT request: {str(e)}")
+            return "Ошибка какая то, взгляни в логи @RandomGor але."
 
     @bot.message_handler(func=lambda message: "гбт" in message.text.lower().split(maxsplit=2)[0])
     def handle_gpt(message):
@@ -332,7 +365,32 @@ def making_bag_of_words_and_training(bot):
             bot.reply_to(message, "Произошла ошибка при обработке запроса 😔")
             print(f"Error in handle_gpt: {str(e)}")
 
+    @bot.message_handler(func=lambda message: "гбт2" in message.text.lower().split(maxsplit=2)[0])
+    def handle_gpt2(message):
+        chat_id = message.chat.id
 
+        thinking_message = bot.reply_to(message, "Думаю... 🔄")
+
+        try:
+            prompt = message.text.replace("гбт2", "").strip()
+            prompt = message.text.replace("Гбт2", "").strip()
+            prompt = message.text.replace("ГБТ2", "").strip()
+
+            print(f"{message.from_user.username} sended {prompt} to GBT2")
+
+            response = get_response_gpt2(prompt)
+
+            bot.delete_message(chat_id, thinking_message.message_id)
+
+            response = convert_to_html_bold(response)
+
+            # Send the GPT response
+            bot.send_message(chat_id, response, parse_mode="HTML")
+        except Exception as e:
+            # Handle errors gracefully
+            bot.delete_message(chat_id, thinking_message.message_id)
+            bot.reply_to(message, "Произошла ошибка при обработке запроса 😔")
+            print(f"Error in handle_gpt: {str(e)}")
 
     # ----------------------------< OMLET PART >-------------------------------
 
@@ -1314,6 +1372,10 @@ def making_bag_of_words_and_training(bot):
 
         if user_id == 7846213864:
             print(f"Тема: {message.text}")
+        elif user_id == 1554618998 and chat_id != -1002128111572:
+            print(f"Вика: {message.text}")
+        elif user_id == 6664270135 and chat_id != -1002128111572:
+            print(f"Вика2: {message.text}")
 
         # Track the time of the message for rate-limiting
         if user_id not in user_message_timestamps:

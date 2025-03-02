@@ -596,7 +596,7 @@ def making_bag_of_words_and_training(bot):
 
         # Reply to the user with the generated response
         bot.reply_to(message, response, parse_mode="HTML")
-        print(f"[{tag}] tag was used.")
+        print(f"[{tag}] tag was used by {message.from_user.first_name}.")
     
     CLOTHES_SEQUENCE = ["футболку", "штаны", "носки", "трусы"]
 

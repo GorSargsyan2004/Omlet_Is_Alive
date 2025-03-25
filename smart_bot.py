@@ -41,7 +41,7 @@ API_KEY_GPT =  os.environ.get('API_KEY_GPT').strip("'")
 with open('intents.json', encoding='utf-8') as file:
     data = json.load(file)
 
-authorized_usernames = ['RandomGor']
+authorized_usernames = ['RandomGor','otkidon']
 
 # Temporary storage for user IDs
 pending_accounts = {}
@@ -815,7 +815,7 @@ def making_bag_of_words_and_training(bot):
     # Command to reset daily stats (for admin only)
     @bot.message_handler(commands=['reset_daily'])
     def reset_daily_stats(message):
-        authorized_usernames = ['RandomGor']  # Replace with actual admin usernames
+        global authorized_usernames  # Replace with actual admin usernames
         if message.from_user.username not in authorized_usernames:
             bot.reply_to(message, "⚠️ У вас нет разрешения на выполнение этой команды.")
             return
@@ -882,7 +882,7 @@ def making_bag_of_words_and_training(bot):
             return
         
         # Check if the issuing user is authorized
-        authorized_usernames = ['RandomGor']  # Replace with the usernames of admins
+        global authorized_usernames  # Replace with the usernames of admins
         if message.from_user.username not in authorized_usernames:
             bot.reply_to(message, "⚠️ У вас нет разрешения на выполнение этой команды.")
             return
@@ -935,7 +935,7 @@ def making_bag_of_words_and_training(bot):
             return
         
         # Check if the issuing user is authorized
-        authorized_usernames = ['RandomGor']  # Replace with the usernames of admins
+        global authorized_usernames  # Replace with the usernames of admins
         if message.from_user.username not in authorized_usernames:
             bot.reply_to(message, "⚠️ У вас нет разрешения на выполнение этой команды.")
             return
@@ -1293,7 +1293,7 @@ def making_bag_of_words_and_training(bot):
     # Telegram bot handler for /same_acc
     @bot.message_handler(commands=["same_acc"])
     def handle_same_acc_command(message):
-        authorized_usernames = ['RandomGor']  # Replace with the usernames of admins
+        global authorized_usernames  # Replace with the usernames of admins
         if message.from_user.username not in authorized_usernames:
             bot.reply_to(message, "⚠️ У вас нет разрешения на выполнение этой команды.")
             return

@@ -36,7 +36,7 @@ making_bag_of_words_and_training(bot)
 
 # Initialize logging
 from daily_logger import DailyLogger
-logger = DailyLogger()
+# logger = DailyLogger()
 
 def main():
     while True:

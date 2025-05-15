@@ -40,7 +40,7 @@ active_playtime = {}  # {player_name: active_time_in_seconds}
 lock = threading.Lock()
 
 
-authorized_usernames = ['RandomGor','otkidon']
+authorized_usernames = ['RandomGor']
 
 # Function to send commands to the Minecraft server via RCON
 def send_rcon_command(command):

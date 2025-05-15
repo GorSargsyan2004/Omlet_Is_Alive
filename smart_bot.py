@@ -41,7 +41,7 @@ API_KEY_GPT =  os.environ.get('API_KEY_GPT').strip("'")
 with open('intents.json', encoding='utf-8') as file:
     data = json.load(file)
 
-authorized_usernames = ['RandomGor','otkidon']
+authorized_usernames = ['RandomGor']
 
 # Temporary storage for user IDs
 pending_accounts = {}

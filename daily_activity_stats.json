@@ -1,56 +1,66 @@
 {
-    "1554618998": {
-        "messages": 41,
-        "coins": 0,
-        "last_milestone": 0
+    "5526449637": {
+        "messages": 79,
+        "coins": 10,
+        "last_milestone": 50
     },
-    "6364125926": {
-        "messages": 4,
-        "coins": 0,
-        "last_milestone": 0
-    },
-    "1464799203": {
-        "messages": 2,
-        "coins": 0,
-        "last_milestone": 0
-    },
-    "5321254678": {
-        "messages": 101,
+    "5299938475": {
+        "messages": 110,
         "coins": 30,
         "last_milestone": 100
     },
-    "6417984396": {
-        "messages": 35,
-        "coins": 0,
-        "last_milestone": 0
+    "1554618998": {
+        "messages": 72,
+        "coins": 10,
+        "last_milestone": 50
     },
     "7082142627": {
-        "messages": 26,
-        "coins": 0,
-        "last_milestone": 0
-    },
-    "5299938475": {
         "messages": 9,
         "coins": 0,
         "last_milestone": 0
     },
-    "5526449637": {
-        "messages": 10,
+    "6364125926": {
+        "messages": 52,
+        "coins": 10,
+        "last_milestone": 50
+    },
+    "6145533111": {
+        "messages": 24,
+        "coins": 0,
+        "last_milestone": 0
+    },
+    "5321254678": {
+        "messages": 189,
+        "coins": 30,
+        "last_milestone": 100
+    },
+    "7267486974": {
+        "messages": 2,
+        "coins": 0,
+        "last_milestone": 0
+    },
+    "5832576902": {
+        "messages": 83,
+        "coins": 10,
+        "last_milestone": 50
+    },
+    "1396347871": {
+        "messages": 11,
+        "coins": 0,
+        "last_milestone": 0
+    },
+    "1464799203": {
+        "messages": 3,
+        "coins": 0,
+        "last_milestone": 0
+    },
+    "6417984396": {
+        "messages": 6,
         "coins": 0,
         "last_milestone": 0
     },
     "1912812308": {
-        "messages": 2,
-        "coins": 0,
-        "last_milestone": 0
-    },
-    "6145533111": {
-        "messages": 2,
-        "coins": 0,
-        "last_milestone": 0
-    },
-    "5391394576": {
-        "messages": 1,
+        "messages": 8,
         "coins": 0,
         "last_milestone": 0
     }

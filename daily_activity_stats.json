@@ -1,66 +1,36 @@
 {
-    "5526449637": {
-        "messages": 79,
-        "coins": 10,
-        "last_milestone": 50
-    },
-    "5299938475": {
-        "messages": 110,
-        "coins": 30,
-        "last_milestone": 100
-    },
-    "1554618998": {
-        "messages": 72,
-        "coins": 10,
-        "last_milestone": 50
-    },
-    "7082142627": {
-        "messages": 9,
-        "coins": 0,
-        "last_milestone": 0
-    },
-    "6364125926": {
-        "messages": 52,
-        "coins": 10,
-        "last_milestone": 50
-    },
-    "6145533111": {
-        "messages": 24,
-        "coins": 0,
-        "last_milestone": 0
-    },
-    "5321254678": {
-        "messages": 189,
-        "coins": 30,
-        "last_milestone": 100
-    },
-    "7267486974": {
-        "messages": 2,
-        "coins": 0,
-        "last_milestone": 0
-    },
-    "5832576902": {
-        "messages": 83,
-        "coins": 10,
-        "last_milestone": 50
-    },
-    "1396347871": {
-        "messages": 11,
-        "coins": 0,
-        "last_milestone": 0
-    },
     "1464799203": {
         "messages": 3,
         "coins": 0,
         "last_milestone": 0
     },
-    "6417984396": {
-        "messages": 6,
+    "1554618998": {
+        "messages": 7,
         "coins": 0,
         "last_milestone": 0
     },
-    "1912812308": {
-        "messages": 8,
+    "5526449637": {
+        "messages": 3,
+        "coins": 0,
+        "last_milestone": 0
+    },
+    "1111567209": {
+        "messages": 5,
+        "coins": 0,
+        "last_milestone": 0
+    },
+    "5321254678": {
+        "messages": 4,
+        "coins": 0,
+        "last_milestone": 0
+    },
+    "7082142627": {
+        "messages": 1,
+        "coins": 0,
+        "last_milestone": 0
+    },
+    "1396347871": {
+        "messages": 1,
         "coins": 0,
         "last_milestone": 0
     }
